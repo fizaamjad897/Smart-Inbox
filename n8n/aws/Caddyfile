@@ -1,0 +1,4 @@
+# Caddy grabs a free Let's Encrypt cert for your DuckDNS domain automatically.
+{$N8N_HOST} {
+	reverse_proxy n8n:5678
+}
