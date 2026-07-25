@@ -3,7 +3,7 @@ import { CATEGORIES, CATEGORY_ORDER } from '../categories.js';
 
 const COPY = {
   URGENT: ['Outages, crashes, anything time-critical.', 'Instant Discord alert'],
-  LEAD: ['Buying signals — pricing, demos, partnerships.', 'Enriched with company, interest & value'],
+  LEAD: ['Buying signals: pricing, demos, partnerships.', 'Enriched with company, interest & value'],
   SUPPORT: ['Help requests, logins, bugs.', 'A reply drafted automatically'],
   NEWSLETTER: ['Promotions and marketing blasts.', 'Logged, kept out of your way'],
   OTHER: ['Everything that does not fit the rest.', 'Filed for reference']

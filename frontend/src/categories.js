@@ -1,5 +1,5 @@
 // Muted, deliberately un-crayon palette. Category is signalled by a small
-// colored rule/dot — never a background fill or an emoji.
+// colored rule/dot, never a background fill or an emoji.
 export const CATEGORIES = {
   URGENT: { label: 'Urgent', color: '#b23b34' },
   LEAD: { label: 'Lead', color: '#2f6f5e' },

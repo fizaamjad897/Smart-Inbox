@@ -19,7 +19,7 @@ export default function DemoCTA() {
               <p className="mt-5 text-[15px] leading-relaxed text-paper/70">
                 A demo account is preloaded with sorted mail. Log in, then use the{' '}
                 <span className="text-paper">Simulate</span> box to type any email and watch your
-                own rules tag and route it in real time — no signup, no Google connection.
+                own rules tag and route it in real time. No signup, no Google connection.
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-4">

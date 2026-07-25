@@ -3,19 +3,19 @@ const SUPPORT = 'fizaamjad444@gmail.com';
 const TIERS = [
   {
     n: '01',
-    title: 'Instant — Simulate',
+    title: 'Instant: Simulate',
     google: 'No Google needed',
     body: 'Log in and open the Simulate tab. Type any email and Smart Inbox classifies and routes it using your rules, then drops it into your dashboard. This is the fastest way to see everything working.'
   },
   {
     n: '02',
-    title: 'Concierge — Real inbox, set up for you',
+    title: 'Concierge: Real inbox, set up for you',
     google: 'We handle the connection',
-    body: 'Want your actual Gmail triaged? Email support and we will connect your inbox and wire your routing into the automation for you — no OAuth screens on your end.'
+    body: 'Want your actual Gmail triaged? Email support and we will connect your inbox and wire your routing into the automation for you, with no OAuth screens on your end.'
   },
   {
     n: '03',
-    title: 'Self-setup — Bring your own credentials',
+    title: 'Self-setup: Bring your own credentials',
     google: 'You connect it',
     body: 'Advanced users can connect their own Gmail, Groq key, and Discord webhooks by following the setup guide in the project README.'
   }
@@ -33,7 +33,7 @@ export default function HelpPage() {
         How to use Smart Inbox
       </h1>
       <p className="mt-3 text-[14px] leading-relaxed text-ink/70">
-        Three ways to get your mail sorted — pick the one that fits how far you want to go.
+        Three ways to get your mail sorted. Pick the one that fits how far you want to go.
       </p>
 
       {/* tiers */}
@@ -56,10 +56,10 @@ export default function HelpPage() {
       <div className="mt-12">
         <h2 className="font-display text-xl font-medium text-ink">Quick start</h2>
         <ol className="mt-4 list-inside list-decimal border-t border-hairline">
-          <Step>Open <span className="font-medium text-ink">Settings</span> and shape your categories — names, colours, and keywords.</Step>
+          <Step>Open <span className="font-medium text-ink">Settings</span> and shape your categories: names, colours, and keywords.</Step>
           <Step>Paste a <span className="font-medium text-ink">Discord webhook</span> under Routing if you want alerts, then save.</Step>
           <Step>Go to <span className="font-medium text-ink">Simulate</span>, send a test email, and watch it get classified.</Step>
-          <Step>Check the <span className="font-medium text-ink">Dashboard</span> — your email is there, filtered by category.</Step>
+          <Step>Check the <span className="font-medium text-ink">Dashboard</span>. Your email is there, filtered by category.</Step>
         </ol>
       </div>
 
@@ -67,7 +67,7 @@ export default function HelpPage() {
       <div className="mt-12 rounded-2xl bg-ink p-8 text-paper">
         <h2 className="font-display text-2xl font-medium">Want your real inbox connected?</h2>
         <p className="mt-3 max-w-lg text-[14px] leading-relaxed text-paper/70">
-          Reach out and we will set up Gmail, classification, and routing for your account — you
+          Reach out and we will set up Gmail, classification, and routing for your account. You
           do not need to touch any Google settings.
         </p>
         <a
@@ -85,7 +85,7 @@ export default function HelpPage() {
         <dl className="mt-4 space-y-5">
           <div>
             <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Is my data shared?</dt>
-            <dd className="mt-1.5 text-[14px] leading-relaxed text-ink/80">No — every account only sees its own emails and settings.</dd>
+            <dd className="mt-1.5 text-[14px] leading-relaxed text-ink/80">No. Every account only sees its own emails and settings.</dd>
           </div>
           <div>
             <dt className="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">What model does the classifier use?</dt>

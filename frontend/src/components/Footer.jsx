@@ -28,7 +28,7 @@ export default function Footer() {
               <span className="font-display text-lg font-medium">Smart Inbox</span>
             </div>
             <p className="mt-4 text-[13px] leading-relaxed text-paper/60">
-              An end-to-end AI email-triage pipeline — workflow automation, an LLM classifier, a
+              An end-to-end AI email-triage pipeline: workflow automation, an LLM classifier, a
               REST API, and a live dashboard.
             </p>
           </div>

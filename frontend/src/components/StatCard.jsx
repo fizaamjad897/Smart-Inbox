@@ -1,4 +1,4 @@
-// A single cell in the overview rail — a large tabular figure over a
+// A single cell in the overview rail: a large tabular figure over a
 // mono caption, with an ink underline when it's the active filter.
 export default function StatCard({ label, value, color, active, onClick }) {
   return (

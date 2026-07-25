@@ -8,7 +8,7 @@ const EXAMPLES = [
   { label: 'Outage', from: 'ops@acme.io', subject: 'Production database is down', body: 'Everything is returning 500s, customers affected, need this fixed immediately.' },
   { label: 'Sales lead', from: 'sara@bigcorp.com', subject: 'Pricing for 300 seats + demo', body: 'We have budget approved this quarter and would love a demo next week.' },
   { label: 'Support', from: 'jordan@user.net', subject: 'Cannot log in to my account', body: 'The password reset link keeps expiring, can you help?' },
-  { label: 'Promo', from: 'news@deals.com', subject: 'Weekend flash sale — 50% off', body: 'Huge discounts on everything. Unsubscribe anytime.' }
+  { label: 'Promo', from: 'news@deals.com', subject: 'Weekend flash sale, 50% off', body: 'Huge discounts on everything. Unsubscribe anytime.' }
 ];
 
 export default function SimulatePage() {
@@ -48,7 +48,7 @@ export default function SimulatePage() {
       </h1>
       <p className="mt-3 max-w-xl text-[14px] leading-relaxed text-ink/70">
         Type any email below. Smart Inbox classifies it with your categories, routes it, and drops
-        it into your dashboard — exactly what happens with real mail.
+        it into your dashboard, exactly what happens with real mail.
       </p>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_0.8fr]">
