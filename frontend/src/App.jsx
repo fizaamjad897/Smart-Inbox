@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext.jsx';
+import Intro from './components/Intro.jsx';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import AppShell from './pages/AppShell.jsx';
@@ -24,7 +25,9 @@ function Protected({ children }) {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <Intro />
+      <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route
@@ -41,6 +44,7 @@ export default function App() {
         <Route path="help" element={<HelpPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
