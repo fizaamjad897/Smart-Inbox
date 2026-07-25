@@ -31,6 +31,7 @@ export default function Intro() {
 
   return (
     <div className="intro" aria-hidden="true">
+      <div className="intro-bg" />
       <div className="intro-env">
         <div className="env-body" />
         <div className="env-pocket" />

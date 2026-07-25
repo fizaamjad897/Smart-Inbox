@@ -52,12 +52,17 @@ html {
   position: fixed;
   inset: 0;
   z-index: 120;
+}
+.intro-bg {
+  position: absolute;
+  inset: 0;
   background: #1c1b19;
+  z-index: 0;
   animation: intro-bg 2.8s cubic-bezier(0.6, 0, 0.2, 1) forwards;
 }
 @keyframes intro-bg {
-  0%, 76% { opacity: 1; }
-  100% { opacity: 0; visibility: hidden; }
+  0%, 68% { opacity: 1; }
+  90%, 100% { opacity: 0; }
 }
 
 /* envelope: focuses in, opens, then hands off to the plane and fades */
@@ -128,21 +133,25 @@ html {
   display: block;
 }
 @keyframes plane-fly {
-  0%, 30% {
+  0%, 28% {
     opacity: 0;
     transform: translate(calc(50vw - 21px), calc(50vh - 21px)) scale(0.8) rotate(16deg);
   }
-  40% {
+  38% {
     opacity: 1;
     transform: translate(calc(50vw - 21px), calc(50vh - 52px)) scale(1) rotate(2deg);
   }
-  66% {
+  58% {
     opacity: 1;
-    transform: translate(calc((50vw + var(--tx) - 42px) / 2), calc(var(--ty) - 21px - 12vh)) scale(0.72) rotate(-14deg);
+    transform: translate(calc((50vw + var(--tx) - 42px) / 2), calc(var(--ty) - 21px - 12vh)) scale(0.7) rotate(-14deg);
   }
-  90%, 100% {
+  74%, 90% {
     opacity: 1;
-    transform: translate(calc(var(--tx) - 21px), calc(var(--ty) - 21px)) scale(0.32) rotate(-4deg);
+    transform: translate(calc(var(--tx) - 21px), calc(var(--ty) - 21px)) scale(0.34) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--tx) - 21px), calc(var(--ty) - 21px)) scale(0.34) rotate(0deg);
   }
 }
 
