@@ -46,20 +46,21 @@ html {
 .swap-in { animation: swap-in 0.5s ease both; }
 .block-in { animation: block-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* ---- Intro motion graphic: envelope focuses in, opens, letter flies to the top ---- */
+/* ---- Intro motion graphic: envelope opens, letter becomes a paper plane that
+        flies in an arc and lands on the navbar logo ---- */
 .intro {
   position: fixed;
   inset: 0;
   z-index: 120;
   background: #1c1b19;
-  animation: intro-bg 2.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  animation: intro-bg 2.8s cubic-bezier(0.6, 0, 0.2, 1) forwards;
 }
 @keyframes intro-bg {
-  0%, 74% { opacity: 1; }
+  0%, 76% { opacity: 1; }
   100% { opacity: 0; visibility: hidden; }
 }
 
-/* the envelope */
+/* envelope: focuses in, opens, then hands off to the plane and fades */
 .intro-env {
   position: absolute;
   left: 50%;
@@ -68,14 +69,14 @@ html {
   height: 102px;
   margin: -51px 0 0 -76px;
   perspective: 700px;
-  animation: env-seq 2.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+  animation: env-seq 2.8s cubic-bezier(0.5, 0, 0.2, 1) forwards;
 }
 @keyframes env-seq {
   0% { opacity: 0; transform: scale(0.5); filter: blur(6px); }
-  14% { opacity: 1; transform: scale(1.06); filter: blur(0); }
-  22% { transform: scale(1); }
-  56% { opacity: 1; transform: scale(1); }
-  70%, 100% { opacity: 0; transform: scale(0.92); }
+  12% { opacity: 1; transform: scale(1.06); filter: blur(0); }
+  18% { transform: scale(1); }
+  32% { opacity: 1; transform: scale(1); }
+  44%, 100% { opacity: 0; transform: scale(0.94); }
 }
 .env-body {
   position: absolute;
@@ -100,46 +101,49 @@ html {
   background: #302c28;
   transform-origin: top center;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  animation: env-flap 2.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  animation: env-flap 2.8s cubic-bezier(0.6, 0, 0.2, 1) forwards;
   z-index: 4;
 }
 @keyframes env-flap {
-  0%, 20% { transform: rotateX(0); }
-  42%, 100% { transform: rotateX(-168deg); }
+  0%, 16% { transform: rotateX(0); }
+  34%, 100% { transform: rotateX(-168deg); }
 }
 
-/* the letter that flies out and settles at the top */
-.intro-fly {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 118px;
-  height: 80px;
-  margin: -40px 0 0 -59px;
-  border-radius: 6px;
-  background: #f6f4ef;
-  box-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.55);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 9px;
-  padding: 0 16px;
-  z-index: 5;
-  animation: intro-fly 2.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
+/* the paper plane: emerges from the envelope, arcs to the logo (--tx,--ty) */
+.intro-plane {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 42px;
+  height: 42px;
+  z-index: 6;
+  --tx: 56px;
+  --ty: 34px;
+  animation: plane-fly 2.8s cubic-bezier(0.42, 0.02, 0.28, 1) forwards;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
 }
-.intro-fly span {
+.intro-plane svg {
+  width: 100%;
+  height: 100%;
   display: block;
-  height: 4px;
-  border-radius: 2px;
-  background: #d9d3c6;
 }
-.intro-fly span:nth-child(2) { width: 74%; }
-.intro-fly span:nth-child(3) { width: 52%; }
-@keyframes intro-fly {
-  0%, 24% { opacity: 0; transform: translateY(22px) scale(0.92); }
-  40% { opacity: 1; transform: translateY(-16px) scale(1); }
-  64% { opacity: 1; transform: translateY(-30vh) scale(0.55); }
-  84%, 100% { opacity: 1; transform: translateY(-42vh) scale(0.42); }
+@keyframes plane-fly {
+  0%, 30% {
+    opacity: 0;
+    transform: translate(calc(50vw - 21px), calc(50vh - 21px)) scale(0.8) rotate(16deg);
+  }
+  40% {
+    opacity: 1;
+    transform: translate(calc(50vw - 21px), calc(50vh - 52px)) scale(1) rotate(2deg);
+  }
+  66% {
+    opacity: 1;
+    transform: translate(calc((50vw + var(--tx) - 42px) / 2), calc(var(--ty) - 21px - 12vh)) scale(0.72) rotate(-14deg);
+  }
+  90%, 100% {
+    opacity: 1;
+    transform: translate(calc(var(--tx) - 21px), calc(var(--ty) - 21px)) scale(0.32) rotate(-4deg);
+  }
 }
 
 /* Page-transition fade (keyed on route change) */
