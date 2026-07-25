@@ -8,15 +8,18 @@ export default function Intro() {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     return !reduced && !sessionStorage.getItem('si_intro');
   });
-  const [target, setTarget] = useState({ x: 56, y: 34 });
+  const [target, setTarget] = useState(null);
 
-  // Measure the real logo position so the plane lands on it (any viewport).
+  // Measure the real logo position BEFORE the plane's animation starts, so the
+  // browser bakes the keyframes with the correct target (works on any width).
   useLayoutEffect(() => {
     if (!show) return;
     const el = document.querySelector('.si-logo');
     if (el) {
       const r = el.getBoundingClientRect();
       setTarget({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+    } else {
+      setTarget({ x: 56, y: 34 });
     }
   }, [show]);
 
@@ -37,12 +40,14 @@ export default function Intro() {
         <div className="env-pocket" />
         <div className="env-flap" />
       </div>
-      <div className="intro-plane" style={{ '--tx': `${target.x}px`, '--ty': `${target.y}px` }}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M2 2 L9 22 L13 13 L22 9 Z" fill="#f6f4ef" />
-          <path d="M2 2 L13 13 L9 22 Z" fill="#cfc8b9" />
-        </svg>
-      </div>
+      {target && (
+        <div className="intro-plane" style={{ '--tx': `${target.x}px`, '--ty': `${target.y}px` }}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M2 2 L9 22 L13 13 L22 9 Z" fill="#f6f4ef" />
+            <path d="M2 2 L13 13 L9 22 Z" fill="#cfc8b9" />
+          </svg>
+        </div>
+      )}
     </div>
   );
 }
