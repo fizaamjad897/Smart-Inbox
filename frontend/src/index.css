@@ -21,162 +21,72 @@ html {
 }
 
 @keyframes floaty {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 @keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes swap-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Mistral-style block pop-in (used by the mosaic + card lists) */
 @keyframes block-in {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  70% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
+  0% { opacity: 0; transform: scale(0.6); }
+  70% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-.animate-float {
-  animation: floaty 7s ease-in-out infinite;
-}
+.animate-float { animation: floaty 7s ease-in-out infinite; }
+.hero-enter { animation: fade-up 0.8s ease both; }
+.swap-in { animation: swap-in 0.5s ease both; }
+.block-in { animation: block-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-.hero-enter {
-  animation: fade-up 0.8s ease both;
-}
-
-.swap-in {
-  animation: swap-in 0.5s ease both;
-}
-
-.block-in {
-  animation: block-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* ---- Intro: a black envelope opens, then the panels split to reveal the site ---- */
+/* ---- Intro motion graphic: envelope focuses in, opens, letter flies to the top ---- */
 .intro {
   position: fixed;
   inset: 0;
   z-index: 120;
-  overflow: hidden;
-}
-
-.intro-panel {
-  position: absolute;
-  left: -1px;
-  right: -1px;
-  height: 51%;
   background: #1c1b19;
-  z-index: 1;
+  animation: intro-bg 2.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
 }
-.intro-top {
-  top: 0;
-  animation: intro-top 2.1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
-}
-.intro-bottom {
-  bottom: 0;
-  animation: intro-bottom 2.1s cubic-bezier(0.76, 0, 0.24, 1) forwards;
-}
-@keyframes intro-top {
-  0%, 56% { transform: translateY(0); }
-  100% { transform: translateY(-101%); }
-}
-@keyframes intro-bottom {
-  0%, 56% { transform: translateY(0); }
-  100% { transform: translateY(101%); }
+@keyframes intro-bg {
+  0%, 74% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
 }
 
-.intro-center {
+/* the envelope */
+.intro-env {
   position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  animation: intro-fade 2.1s ease forwards;
+  left: 50%;
+  top: 50%;
+  width: 152px;
+  height: 102px;
+  margin: -51px 0 0 -76px;
+  perspective: 700px;
+  animation: env-seq 2.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
 }
-@keyframes intro-fade {
-  0%, 44% { opacity: 1; }
-  62%, 100% { opacity: 0; }
-}
-
-.env {
-  position: relative;
-  width: 150px;
-  height: 100px;
-  perspective: 600px;
+@keyframes env-seq {
+  0% { opacity: 0; transform: scale(0.5); filter: blur(6px); }
+  14% { opacity: 1; transform: scale(1.06); filter: blur(0); }
+  22% { transform: scale(1); }
+  56% { opacity: 1; transform: scale(1); }
+  70%, 100% { opacity: 0; transform: scale(0.92); }
 }
 .env-body {
   position: absolute;
   inset: 0;
-  border-radius: 11px;
+  border-radius: 12px;
   background: #26231f;
 }
-.env-letter {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  top: 26px;
-  height: 72px;
-  border-radius: 5px;
-  background: #f6f4ef;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 7px;
-  padding: 0 16px;
-  animation: env-letter 2.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.env-letter span {
-  display: block;
-  height: 4px;
-  border-radius: 2px;
-  background: #d9d3c6;
-}
-.env-letter span:nth-child(2) { width: 72%; }
-.env-letter span:nth-child(3) { width: 48%; }
-@keyframes env-letter {
-  0%, 28% { transform: translateY(30px); opacity: 0; }
-  54%, 100% { transform: translateY(-50px); opacity: 1; }
-}
-
 .env-pocket {
   position: absolute;
   inset: 0;
-  border-radius: 11px;
+  border-radius: 12px;
   background: #201d1a;
   z-index: 3;
   clip-path: polygon(0 32%, 50% 70%, 100% 32%, 100% 100%, 0 100%);
@@ -187,68 +97,71 @@ html {
   left: 0;
   width: 100%;
   height: 52%;
-  background: #2f2b27;
+  background: #302c28;
   transform-origin: top center;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  animation: env-flap 2.1s cubic-bezier(0.6, 0, 0.2, 1) forwards;
+  animation: env-flap 2.6s cubic-bezier(0.6, 0, 0.2, 1) forwards;
   z-index: 4;
 }
 @keyframes env-flap {
-  0%, 8% { transform: rotateX(0); }
-  36%, 100% { transform: rotateX(-172deg); }
+  0%, 20% { transform: rotateX(0); }
+  42%, 100% { transform: rotateX(-168deg); }
 }
 
-.intro-word {
-  font-family: Fraunces, Georgia, serif;
-  font-weight: 500;
-  font-size: 22px;
-  letter-spacing: -0.01em;
-  color: #f6f4ef;
-  animation: intro-word 2.1s ease forwards;
+/* the letter that flies out and settles at the top */
+.intro-fly {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 118px;
+  height: 80px;
+  margin: -40px 0 0 -59px;
+  border-radius: 6px;
+  background: #f6f4ef;
+  box-shadow: 0 14px 34px -12px rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  z-index: 5;
+  animation: intro-fly 2.6s cubic-bezier(0.5, 0, 0.2, 1) forwards;
 }
-@keyframes intro-word {
-  0%, 34% { opacity: 0; transform: translateY(6px); }
-  52%, 60% { opacity: 1; transform: translateY(0); }
-  74%, 100% { opacity: 0; }
+.intro-fly span {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: #d9d3c6;
+}
+.intro-fly span:nth-child(2) { width: 74%; }
+.intro-fly span:nth-child(3) { width: 52%; }
+@keyframes intro-fly {
+  0%, 24% { opacity: 0; transform: translateY(22px) scale(0.92); }
+  40% { opacity: 1; transform: translateY(-16px) scale(1); }
+  64% { opacity: 1; transform: translateY(-30vh) scale(0.55); }
+  84%, 100% { opacity: 1; transform: translateY(-42vh) scale(0.42); }
 }
 
 /* Page-transition fade (keyed on route change) */
 @keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+.page-in { animation: page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-.page-in {
-  animation: page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Smooth height expand/collapse (the "mail opening" effect) */
+/* Smooth height expand/collapse (the "mail opening" effect on cards) */
 .expander {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-.expander.open {
-  grid-template-rows: 1fr;
-}
-
-.expander > .expander-inner {
-  overflow: hidden;
-}
-
+.expander.open { grid-template-rows: 1fr; }
+.expander > .expander-inner { overflow: hidden; }
 .expander-body {
   opacity: 0;
   transform: translateY(-4px);
   transition: opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s;
 }
-
 .expander.open .expander-body {
   opacity: 1;
   transform: translateY(0);
@@ -260,7 +173,6 @@ html {
   transform: translateY(18px);
   transition: opacity 0.7s ease, transform 0.7s ease;
 }
-
 .reveal.in {
   opacity: 1;
   transform: none;
@@ -274,15 +186,7 @@ html {
   .page-in {
     animation: none;
   }
-  .reveal {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-  .expander {
-    transition: none;
-  }
-  .expander-body {
-    transition: none;
-  }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .expander,
+  .expander-body { transition: none; }
 }
