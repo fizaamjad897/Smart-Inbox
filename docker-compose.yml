@@ -1,0 +1,63 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: smartinbox-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Karachi
+      - N8N_SECURE_COOKIE=false
+      # In Docker the backend is reachable by service name, not localhost.
+      - DASHBOARD_API_URL=http://backend:4000
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - smartinbox
+
+  mongo:
+    image: mongo:7
+    container_name: smartinbox-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - smartinbox
+
+  backend:
+    build: ./backend
+    container_name: smartinbox-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017}
+      - MONGODB_DB=${MONGODB_DB:-smartinbox}
+    depends_on:
+      - mongo
+    networks:
+      - smartinbox
+
+  frontend:
+    build: ./frontend
+    container_name: smartinbox-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - smartinbox
+
+volumes:
+  n8n_data:
+  mongo_data:
+
+networks:
+  smartinbox:
+    driver: bridge

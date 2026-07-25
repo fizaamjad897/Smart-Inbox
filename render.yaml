@@ -1,0 +1,73 @@
+# Render Blueprint — backend + n8n, both on the FREE tier.
+# In Render: New ▸ Blueprint ▸ point at this repo.
+#
+# n8n on free tier needs two things the disk-based setup gave for free:
+#   1) Postgres for persistence (free disks aren't available on free plan)
+#   2) A constant N8N_ENCRYPTION_KEY so stored credentials survive restarts
+# It ALSO sleeps after ~15 min idle, so its polling trigger won't fire unless
+# you keep it awake with an external uptime pinger (see README/notes).
+databases:
+  - name: n8n-db
+    plan: free
+    databaseName: n8n
+    user: n8n
+
+services:
+  - type: web
+    name: smartinbox-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: PORT
+        value: "4000"
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: smartinbox
+      - key: JWT_SECRET
+        generateValue: true
+      - key: GROQ_API_KEY
+        sync: false
+      - key: INGEST_EMAIL
+        value: fizaamjad444@gmail.com
+
+  - type: web
+    name: smartinbox-n8n
+    runtime: image
+    image:
+      url: docker.io/n8nio/n8n:latest
+    plan: free
+    envVars:
+      # --- persistence: store n8n data in Postgres, not the ephemeral disk ---
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
+        fromDatabase: { name: n8n-db, property: host }
+      - key: DB_POSTGRESDB_PORT
+        fromDatabase: { name: n8n-db, property: port }
+      - key: DB_POSTGRESDB_DATABASE
+        fromDatabase: { name: n8n-db, property: database }
+      - key: DB_POSTGRESDB_USER
+        fromDatabase: { name: n8n-db, property: user }
+      - key: DB_POSTGRESDB_PASSWORD
+        fromDatabase: { name: n8n-db, property: password }
+      # --- must stay constant, or saved credentials can't be decrypted ---
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+      # --- n8n web config ---
+      - key: N8N_PORT
+        value: "5678"
+      - key: N8N_PROTOCOL
+        value: https
+      - key: GENERIC_TIMEZONE
+        value: Asia/Karachi
+      - key: N8N_SECURE_COOKIE
+        value: "true"
+      # Set these after first deploy, once you know the URL
+      # (host = smartinbox-n8n.onrender.com):
+      - key: N8N_HOST
+        sync: false
+      - key: WEBHOOK_URL
+        sync: false

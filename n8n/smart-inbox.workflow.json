@@ -1,0 +1,974 @@
+{
+  "name": "Smart-Inbox",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread"
+        }
+      },
+      "id": "3530a57f-4828-4930-9c1d-fcacef767de3",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        -14672,
+        3952
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "9mSmdzY1De6FX7gd",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst clean = (str) => String(str || '').replace(/[\\u0000-\\u001F]/g, ' ').trim();\nconst subject = clean(item.Subject || item.subject || '(No Subject)').substring(0, 200);\nconst from = clean(item.From || item.from || 'Unknown').substring(0, 200);\nconst snippet = clean(item.snippet || '').substring(0, 500);\nreturn [{ json: { subject, from, snippet, messageId: item.id, threadId: item.threadId, timestamp: new Date().toLocaleString('en-PK', { timeZone: 'Asia/Karachi' }) } }];"
+      },
+      "id": "6f989df3-9851-4327-9385-039ddbb6570a",
+      "name": "Normalize Fields",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -14448,
+        3952
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:20,temperature:0,messages:[{role:'system',content:'Classify email. Return ONE WORD only: URGENT LEAD SUPPORT NEWSLETTER OTHER\\n\\nURGENT: server down/crash/critical/emergency/outage/immediately\\nLEAD: interested/hire/pricing/demo/budget/partnership/schedule\\nSUPPORT: help/password/login/account/bug/troubleshoot\\nNEWSLETTER: promo/marketing/discount/unsubscribe\\nOTHER: everything else\\n\\nExamples:\\nServer Down -> URGENT\\nInterested in hiring -> LEAD\\nForgot password -> SUPPORT\\nNewsletter -> NEWSLETTER'},{role:'user',content:'Subject: '+$json.subject+' Body: '+$json.snippet}]}) }}",
+        "options": {}
+      },
+      "id": "0720c7ad-90df-4e23-b906-ecf611bbee60",
+      "name": "Classify Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -14016,
+        3952
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst raw = response.choices[0].message.content.trim().toUpperCase();\nconst valid = ['URGENT', 'LEAD', 'SUPPORT', 'NEWSLETTER', 'OTHER'];\nconst category = valid.find(c => raw.includes(c)) || 'OTHER';\nconst prev = $('Normalize Fields').first().json;\nreturn [{ json: { ...prev, category } }];"
+      },
+      "id": "a1b7cd12-b540-4a3c-8116-4045a696cc99",
+      "name": "Extract Category",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -13792,
+        3952
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "URGENT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "urgent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "LEAD",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "lead"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.category }}",
+                    "rightValue": "SUPPORT",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "support"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "873cbeaa-db5e-47db-99a2-7291e8ab7348",
+      "name": "Route by Category",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        -13568,
+        3952
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/YOUR_URGENT_WEBHOOK",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.discordBody }}",
+        "options": {}
+      },
+      "id": "b6a86b3c-2f78-4e75-a5fa-501d38d572e9",
+      "name": "Discord Urgent Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13328,
+        3728
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Extract lead info and return ONLY valid JSON with fields: company_name, sender_name, interest_level (hot/warm/cold), estimated_value (high/medium/low), summary (max 80 words). No markdown, no extra text.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"From: {{ $json.from }}\\nSubject: {{ $json.subject }}\\nBody: {{ $json.snippet }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "86913438-00da-43e5-88db-dcb97ce1817b",
+      "name": "Extract Lead Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13312,
+        3968
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst raw = response.choices[0].message.content.trim();\nlet lead;\ntry {\n  lead = JSON.parse(raw.replace(/```json|```/g, '').trim());\n} catch(e) {\n  lead = { company_name: 'Unknown', sender_name: 'Unknown', interest_level: 'cold', estimated_value: 'low', summary: 'Could not parse' };\n}\nconst prev = $('Normalize Fields').first().json;\nreturn [{ json: { ...prev, ...lead } }];"
+      },
+      "id": "1b0ad1b1-0abd-4ec5-bd86-20feef4fc6ca",
+      "name": "Parse Lead",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -13104,
+        3936
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/YOUR_LEAD_WEBHOOK",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.discordBody }}",
+        "options": {}
+      },
+      "id": "e9bd86f3-f0b1-4bde-9148-26dd720f12e1",
+      "name": "Discord Lead Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -12640,
+        3952
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_GROQ_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"max_tokens\": 300,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a helpful support assistant. Draft a professional, friendly email reply. Be concise (max 120 words). Sign off as 'Support Team'.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"From: {{ $json.from }}\\nSubject: {{ $json.subject }}\\nMessage: {{ $json.snippet }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "e7341dfd-3b1d-4eea-9ddf-8b1f63792f84",
+      "name": "Draft Support Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13328,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst draft = String(response.choices[0].message.content || '').trim();\nconst prev = $('Normalize Fields').first().json;\nreturn [{ json: { ...prev, draft } }];"
+      },
+      "id": "1b6b5e67-3c25-47ee-80dc-95e52cbfa681",
+      "name": "Parse Draft",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -13104,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/YOUR_SUPPORT_WEBHOOK",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.discordBody }}",
+        "options": {}
+      },
+      "id": "4806feed-16b6-4e11-ac00-6f3d4e619d35",
+      "name": "Discord Support Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -12896,
+        4128
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "1xL6H-FnbOxgKZbusNjajV26NwgY5YIUxs6EjLd5A2Tk",
+          "__rl": true,
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Sheet1",
+          "__rl": true,
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Category": "={{ $json.category }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Company": "={{ $json.company_name || '' }}",
+            "Interest Level": "={{ $json.interest_level || '' }}",
+            "Estimated Value": "={{ $json.estimated_value || '' }}",
+            "Summary": "={{ $json.summary || $json.snippet.substring(0, 200) }}",
+            "Status": "=New"
+          }
+        },
+        "options": {}
+      },
+      "id": "18568fab-08d1-4927-bfad-dd2023ceaf06",
+      "name": "Sheets Log Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -12896,
+        4000
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bTZ3TutLNlDHfQGO",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "1xL6H-FnbOxgKZbusNjajV26NwgY5YIUxs6EjLd5A2Tk",
+          "__rl": true,
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Sheet1",
+          "__rl": true,
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Category": "={{ $json.category }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Company": "=",
+            "Interest Level": "=",
+            "Estimated Value": "=",
+            "Summary": "={{ $json.snippet.substring(0, 200) }}",
+            "Status": "=New"
+          }
+        },
+        "options": {}
+      },
+      "id": "798a556a-83b5-4f1a-b5ab-642928056a70",
+      "name": "Sheets Log Urgent",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -13104,
+        3728
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bTZ3TutLNlDHfQGO",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "1xL6H-FnbOxgKZbusNjajV26NwgY5YIUxs6EjLd5A2Tk",
+          "__rl": true,
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Sheet1",
+          "__rl": true,
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Category": "={{ $json.category }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Company": "=",
+            "Interest Level": "=",
+            "Estimated Value": "=",
+            "Summary": "={{ $json.snippet.substring(0, 200) }}",
+            "Status": "=New"
+          }
+        },
+        "options": {}
+      },
+      "id": "36ade38a-557e-4180-a48e-ca1e9032b33d",
+      "name": "Sheets Log Support",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -12896,
+        4368
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bTZ3TutLNlDHfQGO",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "value": "1xL6H-FnbOxgKZbusNjajV26NwgY5YIUxs6EjLd5A2Tk",
+          "__rl": true,
+          "mode": "id"
+        },
+        "sheetName": {
+          "value": "Sheet1",
+          "__rl": true,
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $json.timestamp }}",
+            "Category": "={{ $json.category }}",
+            "From": "={{ $json.from }}",
+            "Subject": "={{ $json.subject }}",
+            "Company": "=",
+            "Interest Level": "=",
+            "Estimated Value": "=",
+            "Summary": "={{ $json.snippet.substring(0, 200) }}",
+            "Status": "=New"
+          }
+        },
+        "options": {}
+      },
+      "id": "f77a8ee7-20bf-4f53-9044-57431a8cbe1d",
+      "name": "Sheets Log Other",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -13328,
+        4240
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "bTZ3TutLNlDHfQGO",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://discord.com/api/webhooks/YOUR_LOGS_WEBHOOK",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.discordBody }}",
+        "options": {}
+      },
+      "id": "7b07e36c-72ba-45dd-8901-c288f226c356",
+      "name": "Discord All Logs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13328,
+        4352
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst payload = {\n  embeds: [{\n    title: \"URGENT EMAIL\",\n    color: 16711680,\n    fields: [\n      { name: \"From\", value: (String(d.from || 'Unknown')).substring(0,100), inline: true },\n      { name: \"Subject\", value: (String(d.subject || 'No Subject')).substring(0,100), inline: true },\n      { name: \"Preview\", value: (String(d.snippet || 'No content')).substring(0,300) }\n    ],\n    footer: { text: \"SmartInbox Pro - \" + String(d.timestamp || '') }\n  }]\n};\nreturn [{ json: { ...d, discordBody: JSON.stringify(payload) } }];"
+      },
+      "id": "dcd93278-91ac-4f4b-b3a9-e486e60d7f07",
+      "name": "Build Urgent Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -11280,
+        3504
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst payload = {\n  embeds: [{\n    title: \"NEW LEAD\",\n    color: 3066993,\n    fields: [\n      { name: \"Company\", value: (String(d.company_name || 'Unknown')).substring(0,100), inline: true },\n      { name: \"Interest\", value: String(d.interest_level || 'cold'), inline: true },\n      { name: \"Value\", value: String(d.estimated_value || 'low'), inline: true },\n      { name: \"From\", value: (String(d.from || 'Unknown')).substring(0,100) },\n      { name: \"Summary\", value: (String(d.summary || 'No summary')).substring(0,300) }\n    ],\n    footer: { text: \"SmartInbox Pro - \" + String(d.timestamp || '') }\n  }]\n};\nreturn [{ json: { ...d, discordBody: JSON.stringify(payload) } }];"
+      },
+      "id": "01aa4910-bf5b-4987-9afc-14a888413d43",
+      "name": "Build Lead Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -10848,
+        3648
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst payload = {\n  embeds: [{\n    title: \"SUPPORT REQUEST\",\n    color: 3447003,\n    fields: [\n      { name: \"From\", value: (String(d.from || 'Unknown')).substring(0,100), inline: true },\n      { name: \"Subject\", value: (String(d.subject || 'No Subject')).substring(0,100), inline: true },\n      { name: \"Issue\", value: (String(d.snippet || 'No content')).substring(0,200) },\n      { name: \"Draft Reply\", value: (String(d.draft || 'No draft')).substring(0,300) }\n    ],\n    footer: { text: \"SmartInbox Pro - \" + String(d.timestamp || '') }\n  }]\n};\nreturn [{ json: { ...d, discordBody: JSON.stringify(payload) } }];"
+      },
+      "id": "d5ad18a6-3262-4708-92d1-41583c6bdba1",
+      "name": "Build Support Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -10848,
+        3904
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $input.first().json;\nconst from = String(d.from || d.From || 'Unknown').substring(0,100);\nconst subject = String(d.subject || d.Subject || 'No Subject').substring(0,100);\nconst category = String(d.category || 'OTHER');\nconst timestamp = String(d.timestamp || d.Timestamp || '');\n\nconst payload = {\n  embeds: [{\n    title: category + \" processed\",\n    color: 9807270,\n    fields: [\n      { name: \"From\", value: from, inline: true },\n      { name: \"Category\", value: category, inline: true },\n      { name: \"Subject\", value: subject }\n    ],\n    footer: { text: \"SmartInbox Pro - \" + timestamp }\n  }]\n};\n\nreturn [{ json: { ...d, discordBody: JSON.stringify(payload) } }];"
+      },
+      "id": "ab681b9f-44ef-4731-b96e-0a1e0a19fb91",
+      "name": "Build Logs Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -10400,
+        3728
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:4000/api/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ message_id: $json.messageId, timestamp: $json.timestamp, category: $json.category, from: $json.from, subject: $json.subject, snippet: $json.snippet, status: 'New' }) }}",
+        "options": {}
+      },
+      "id": "c1000001-0000-4000-a000-000000000001",
+      "name": "Dashboard Ingest",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13792,
+        4560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:4000/api/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ message_id: $json.messageId, company_name: $json.company_name, interest_level: $json.interest_level, estimated_value: $json.estimated_value, summary: $json.summary }) }}",
+        "options": {}
+      },
+      "id": "c1000002-0000-4000-a000-000000000002",
+      "name": "Dashboard Enrich Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -13104,
+        4560
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:4000/api/emails",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ message_id: $json.messageId, draft: $json.draft }) }}",
+        "options": {}
+      },
+      "id": "c1000003-0000-4000-a000-000000000003",
+      "name": "Dashboard Enrich Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -12896,
+        4560
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Normalize Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Fields": {
+      "main": [
+        [
+          {
+            "node": "Classify Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Email": {
+      "main": [
+        [
+          {
+            "node": "Extract Category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Category": {
+      "main": [
+        [
+          {
+            "node": "Route by Category",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dashboard Ingest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Category": {
+      "main": [
+        [
+          {
+            "node": "Build Urgent Payload",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Lead Info",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Draft Support Reply",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets Log Other",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Extract Lead Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Urgent Alert": {
+      "main": [
+        [
+          {
+            "node": "Sheets Log Urgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Log Urgent": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Lead Info": {
+      "main": [
+        [
+          {
+            "node": "Parse Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Lead": {
+      "main": [
+        [
+          {
+            "node": "Build Lead Payload",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dashboard Enrich Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Lead Alert": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Log Lead": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Support Reply": {
+      "main": [
+        [
+          {
+            "node": "Parse Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Draft": {
+      "main": [
+        [
+          {
+            "node": "Build Support Payload",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Dashboard Enrich Support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Discord Support Alert": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Log Support": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets Log Other": {
+      "main": [
+        [
+          {
+            "node": "Build Logs Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Urgent Payload": {
+      "main": [
+        [
+          {
+            "node": "Discord Urgent Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Lead Payload": {
+      "main": [
+        [
+          {
+            "node": "Discord Lead Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets Log Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Support Payload": {
+      "main": [
+        [
+          {
+            "node": "Discord Support Alert",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sheets Log Support",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Logs Payload": {
+      "main": [
+        [
+          {
+            "node": "Discord All Logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58fe1bd3-3193-48af-80fa-97b537b07673",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1b1745a466858ec8e876e34ab2b05ab13dfb41e35cef517787f767a13bb6269d"
+  },
+  "nodeGroups": [],
+  "id": "H6ILiSu97nXpnytg",
+  "tags": []
+}
