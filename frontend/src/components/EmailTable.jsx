@@ -29,7 +29,7 @@ function Card({ email, index }) {
 
   return (
     <div
-      className="block-in overflow-hidden rounded-2xl border border-hairline bg-surface transition-shadow hover:shadow-[0_18px_44px_-32px_rgba(28,27,25,0.5)]"
+      className="block-in overflow-hidden rounded-2xl border border-hairline bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_44px_-32px_rgba(28,27,25,0.5)]"
       style={{ animationDelay: `${Math.min(index, 14) * 45}ms`, borderLeft: `3px solid ${color}` }}
     >
       <button
@@ -63,18 +63,22 @@ function Card({ email, index }) {
         )}
       </button>
 
-      {open && hasDetail && (
-        <div className="space-y-4 border-t border-hairline bg-paper/60 px-4 py-5 sm:px-5">
-          {email.summary && <Detail label="Summary">{email.summary}</Detail>}
-          {email.snippet && <Detail label="Preview">{email.snippet}</Detail>}
-          {email.draft && (
-            <div>
-              <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Suggested reply</p>
-              <pre className="whitespace-pre-wrap rounded-xl border border-hairline bg-surface p-4 font-mono text-[12px] leading-relaxed text-ink/90">
-                {email.draft}
-              </pre>
+      {hasDetail && (
+        <div className={`expander ${open ? 'open' : ''}`}>
+          <div className="expander-inner">
+            <div className="expander-body space-y-4 border-t border-hairline bg-paper/60 px-4 py-5 sm:px-5">
+              {email.summary && <Detail label="Summary">{email.summary}</Detail>}
+              {email.snippet && <Detail label="Preview">{email.snippet}</Detail>}
+              {email.draft && (
+                <div>
+                  <p className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">Suggested reply</p>
+                  <pre className="whitespace-pre-wrap rounded-xl border border-hairline bg-surface p-4 font-mono text-[12px] leading-relaxed text-ink/90">
+                    {email.draft}
+                  </pre>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

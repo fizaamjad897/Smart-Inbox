@@ -84,6 +84,48 @@ html {
   animation: block-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Page-transition fade (keyed on route change) */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-in {
+  animation: page-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Smooth height expand/collapse (the "mail opening" effect) */
+.expander {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.expander.open {
+  grid-template-rows: 1fr;
+}
+
+.expander > .expander-inner {
+  overflow: hidden;
+}
+
+.expander-body {
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s ease 0.05s, transform 0.3s ease 0.05s;
+}
+
+.expander.open .expander-body {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Scroll-reveal (toggled by the Reveal component) */
 .reveal {
   opacity: 0;
@@ -100,12 +142,19 @@ html {
   .animate-float,
   .hero-enter,
   .swap-in,
-  .block-in {
+  .block-in,
+  .page-in {
     animation: none;
   }
   .reveal {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+  .expander {
+    transition: none;
+  }
+  .expander-body {
     transition: none;
   }
 }

@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import Logo from '../components/Logo.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 
@@ -12,6 +12,7 @@ const TABS = [
 export default function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const doLogout = () => {
     logout();
@@ -76,7 +77,9 @@ export default function AppShell() {
       </header>
 
       <main className="mx-auto max-w-6xl px-6 py-10">
-        <Outlet />
+        <div key={location.pathname} className="page-in">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
