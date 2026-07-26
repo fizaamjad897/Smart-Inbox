@@ -5,6 +5,7 @@ import { initDb, cols, upsertEmail, listEmails, getStats } from './db.js';
 import { signup, login, requireAuth } from './auth.js';
 import { getSettings, updateSettings } from './settings.js';
 import { classifyEmail } from './classify.js';
+import { saveConfig, getStatus, buildAuthUrl, handleCallback } from './google.js';
 
 const app = express();
 app.use(cors());
@@ -33,6 +34,39 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 app.get('/api/auth/me', requireAuth, (req, res) => res.json({ email: req.userEmail }));
+
+/* ---------- connect your own Gmail (bring-your-own OAuth app) ---------- */
+app.get('/api/google/status', requireAuth, async (req, res) => {
+  res.json(await getStatus(req.userId));
+});
+
+app.put('/api/google/config', requireAuth, async (req, res) => {
+  try {
+    await saveConfig(req.userId, req.body || {});
+    res.json(await getStatus(req.userId));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/google/connect', requireAuth, async (req, res) => {
+  try {
+    res.json({ url: await buildAuthUrl(req.userId) });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Google redirects the browser here (no auth header — identity is in `state`).
+app.get('/api/google/callback', async (req, res) => {
+  try {
+    const { frontend } = await handleCallback(req.query.code, req.query.state);
+    res.redirect(`${frontend}/app/settings?connected=1`);
+  } catch (err) {
+    const fe = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+    res.redirect(`${fe}/app/settings?error=${encodeURIComponent(err.message)}`);
+  }
+});
 
 /* ---------- settings ---------- */
 app.get('/api/settings', requireAuth, async (req, res) => {
