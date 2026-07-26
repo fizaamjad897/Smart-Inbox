@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import ConnectGmail from '../components/ConnectGmail.jsx';
 
 const blankCat = () => ({ key: '', label: '', color: '#8a8578', description: '', keywords: '' });
 
@@ -78,6 +79,10 @@ export default function SettingsPage() {
       <p className="mt-3 text-[14px] leading-relaxed text-ink/70">
         This is the whole config surface: categories, routing, and an on/off switch.
       </p>
+
+      <div className="mt-10">
+        <ConnectGmail />
+      </div>
 
       {/* enabled */}
       <div className="mt-10 flex items-center justify-between border-y border-hairline py-5">

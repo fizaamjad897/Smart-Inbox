@@ -31,6 +31,9 @@ export const api = {
   getSettings: () => req('/settings'),
   saveSettings: (b) => req('/settings', { method: 'PUT', body: b }),
   simulate: (b) => req('/simulate', { method: 'POST', body: b }),
+  getGoogleStatus: () => req('/google/status'),
+  saveGoogleConfig: (b) => req('/google/config', { method: 'PUT', body: b }),
+  getGoogleConnectUrl: () => req('/google/connect'),
   getStats: () => req('/stats'),
   getEmails: ({ category = 'ALL', q = '' } = {}) => {
     const p = new URLSearchParams();
