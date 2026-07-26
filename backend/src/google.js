@@ -40,6 +40,7 @@ export async function getStatus(userId) {
   return {
     configured: !!g.clientId,
     connected: !!g.refreshTokenEnc,
+    provisioned: !!doc?.n8nWorkflowId,
     email: g.email || null,
     redirectUri: REDIRECT_URI
   };

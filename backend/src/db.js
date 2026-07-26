@@ -19,6 +19,7 @@ export async function initDb() {
   await cols.users.createIndex({ email: 1 }, { unique: true });
   await cols.settings.createIndex({ userId: 1 }, { unique: true });
   await cols.integrations.createIndex({ userId: 1 }, { unique: true });
+  await cols.integrations.createIndex({ ingestToken: 1 }, { unique: true, sparse: true });
   // One row per (user, gmail message) so base + enrichment posts merge.
   await cols.emails.createIndex(
     { userId: 1, message_id: 1 },

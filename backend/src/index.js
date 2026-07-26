@@ -6,6 +6,7 @@ import { signup, login, requireAuth } from './auth.js';
 import { getSettings, updateSettings } from './settings.js';
 import { classifyEmail } from './classify.js';
 import { saveConfig, getStatus, buildAuthUrl, handleCallback } from './google.js';
+import { provisionForUser } from './n8nprovision.js';
 
 const app = express();
 app.use(cors());
@@ -60,11 +61,26 @@ app.get('/api/google/connect', requireAuth, async (req, res) => {
 // Google redirects the browser here (no auth header — identity is in `state`).
 app.get('/api/google/callback', async (req, res) => {
   try {
-    const { frontend } = await handleCallback(req.query.code, req.query.state);
+    const { userId, frontend } = await handleCallback(req.query.code, req.query.state);
+    // provision their n8n workflow; don't fail the redirect if it errors (retryable)
+    try {
+      await provisionForUser(userId);
+    } catch (e) {
+      console.error('provision error:', e.message);
+    }
     res.redirect(`${frontend}/app/settings?connected=1`);
   } catch (err) {
     const fe = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
     res.redirect(`${fe}/app/settings?error=${encodeURIComponent(err.message)}`);
+  }
+});
+
+// Retry provisioning (e.g. after fixing a Discord webhook or if n8n was down).
+app.post('/api/google/provision', requireAuth, async (req, res) => {
+  try {
+    res.json(await provisionForUser(req.userId));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -159,9 +175,17 @@ async function ingestUserId() {
 
 app.post('/api/emails', async (req, res) => {
   try {
-    const userId = await ingestUserId();
-    if (!userId) {
-      return res.status(503).json({ error: `Ingest account ${INGEST_EMAIL} not found — sign up with that email first` });
+    let userId;
+    // Per-user workflows include ?ingest=<token>; the shared demo feed doesn't.
+    if (req.query.ingest) {
+      const doc = await cols.integrations.findOne({ ingestToken: String(req.query.ingest) });
+      userId = doc?.userId || null;
+      if (!userId) return res.status(403).json({ error: 'Invalid ingest token' });
+    } else {
+      userId = await ingestUserId();
+      if (!userId) {
+        return res.status(503).json({ error: `Ingest account ${INGEST_EMAIL} not found — sign up with that email first` });
+      }
     }
     res.status(201).json(await upsertEmail(userId, req.body || {}));
   } catch (err) {
